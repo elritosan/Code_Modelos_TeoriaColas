@@ -4,9 +4,10 @@ import math
 from abc import ABC, abstractmethod
 
 class ClassBaseTeoriaColas(ABC):
-    def __init__(self, lam, mu):
+    def __init__(self, lam, mu, k=1):
         self.lam = lam
         self.mu = mu
+        self.k = k
         
     @abstractmethod
     def Pn(self, n):
@@ -81,8 +82,7 @@ class ClassBaseTeoriaColas(ABC):
       
 class ClassInfinitas(ClassBaseTeoriaColas):
     def __init__(self, lam, mu, k=1):
-        super().__init__(lam, mu)
-        self.k = k
+        super().__init__(lam, mu, k)
 
 class ClassPICS(ClassInfinitas):
     def __init__(self, lam, mu):
