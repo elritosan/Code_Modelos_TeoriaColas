@@ -77,3 +77,46 @@ class ClassBaseTeoriaColas(ABC):
                 self.CTS_costo_diario_tiempo_sistema(C_TS) +
                 self.CTSE_costo_diario_servicio(C_TSE) +
                 self.CS_costo_diario_servidor(C_S))
+
+      
+class ClassInfinitas(ClassBaseTeoriaColas):
+    def __init__(self, lam, mu, k=1):
+        super().__init__(lam, mu)
+        self.k = k
+
+class ClassPICS(ClassInfinitas):
+    def __init__(self, lam, mu):
+        super().__init__(lam, mu, k=1)
+        self.rho = lam / mu
+        if self.rho >= 1:
+            raise ValueError("Sistema inestable: λ/μ debe ser < 1")
+
+    def rho_prob_sistema_ocupado(self):
+        return self.rho
+    
+    def P0_prob_sistema_desocupado(self):
+        return 1 - self.rho
+
+    def Pn(self, n):
+        return self.P0_prob_sistema_desocupado() * (self.rho ** n)
+
+    def L(self):
+        return self.lam / (self.mu - self.lam)
+
+    def Lq(self):
+        return (self.lam ** 2) / (self.mu * (self.mu - self.lam))
+
+    def Ln(self):
+        return self.L()
+
+    def W(self):
+        return 1 / (self.mu - self.lam)
+
+    def Wq(self):
+        return self.lam / (self.mu * (self.mu - self.lam))
+
+    def Wn(self):
+        return self.W()
+
+    def CS_costo_diario_servidor(self, C_S):
+        return C_S
