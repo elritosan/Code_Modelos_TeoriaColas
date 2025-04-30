@@ -207,3 +207,44 @@ class ClassPFCS(ClassFinitas):
 
     def Lq(self):
         return self.M - ((self.lam + self.mu) / self.lam) * (1 - self.P0_prob_sistema_vacio())
+class ClassPFCM(ClassFinitas):
+    def __init__(self, lam, mu, M, k):
+        super().__init__(lam, mu, M, k)
+        self.rho = lam / (mu * M)
+        if self.rho >= 1:
+            raise ValueError("Sistema inestable: λ/(μM) debe ser < 1")
+        
+    def P0_prob_sistema_vacio(self):
+        suma = 0
+        for n in range(0, self.k):
+            termino = math.factorial(self.M) / (math.factorial(self.M - n) * math.factorial(n)) * (self.lam / self.mu) ** n
+            suma += termino
+        for n in range(self.k, self.M + 1):
+            termino = math.factorial(self.M) / (math.factorial(self.M - n) * math.factorial(self.k) * self.k ** (n - self.k)) * (self.lam / self.mu) ** n
+            suma += termino
+        return 1 / suma
+    
+    def PE_prob_sistema_ocupado(self):
+        return sum(self.Pn(n) for n in range(self.k, self.M + 1))
+
+    def Pn(self, n):
+        if n < 0 or n > self.M:
+            return 0
+        P0 = self.P0_prob_sistema_vacio()
+        if n < self.k:
+            return P0 * math.factorial(self.M) / (math.factorial(self.M - n) * math.factorial(n)) * (self.lam / self.mu) ** n
+        else:
+            return P0 * math.factorial(self.M) / (math.factorial(self.M - n) * math.factorial(self.k) * self.k ** (n - self.k)) * (self.lam / self.mu) ** n
+
+    def PNE_prob_no_esperar(self):
+        return 1 - self.PE_prob_sistema_ocupado()
+
+    def L(self):
+        suma1 = sum(n * self.Pn(n) for n in range(0, self.k))
+        suma2 = sum((n - self.k) * self.Pn(n) for n in range(self.k, self.M + 1))
+        suma3 = self.k * (1 - sum(self.Pn(n) for n in range(0, self.k)))
+        return suma1 + suma2 + suma3
+
+
+    def Lq(self):
+        return sum((n - self.k) * self.Pn(n) for n in range(self.k, self.M + 1))
