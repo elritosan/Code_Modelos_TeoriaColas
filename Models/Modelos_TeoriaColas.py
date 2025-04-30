@@ -120,3 +120,49 @@ class ClassPICS(ClassInfinitas):
 
     def CS_costo_diario_servidor(self, C_S):
         return C_S
+class ClassPICM(ClassInfinitas): 
+    def __init__(self, lam, mu, k):
+        super().__init__(lam, mu, k)
+        self.rho = lam / (k * mu)
+        if self.rho >= 1:
+            raise ValueError("Sistema inestable: λ/(kμ) debe ser < 1")
+
+    def P0_prob_sistema_vacio(self):
+        sum1 = sum((1 / math.factorial(n)) * (self.lam / self.mu) ** n for n in range(self.k))
+        sum2 = (1 / math.factorial(self.k)) * (self.lam / self.mu) ** self.k * (self.k * self.mu) / (self.k * self.mu - self.lam)
+        return 1 / (sum1 + sum2)
+
+    def Pk_prob_sistema_ocupado(self):
+        P0 = self.P0_prob_sistema_vacio()
+        return (1 / math.factorial(self.k)) * (self.lam / self.mu) ** self.k * (self.k * self.mu) / (self.k * self.mu - self.lam) * P0
+
+    def PNE_prob_sistema_desocupado(self):
+        return 1 - self.Pk_prob_sistema_ocupado()
+    
+    def Pn(self, n):
+        P0 = self.P0_prob_sistema_vacio()
+        if n < self.k:
+            return P0 * (1 / math.factorial(n)) * (self.lam / self.mu) ** n
+        else:
+            return P0 * (1 / (math.factorial(self.k) * self.k ** (n - self.k))) * (self.lam / self.mu) ** n
+
+    def L(self):
+        return self.Lq() + (self.lam / self.mu)
+    
+    def Lq(self):
+        return (self.lam * self.mu * ((self.lam / self.mu) ** self.k) * self.P0_prob_sistema_vacio()) / ((math.factorial(self.k - 1)) * ((self.k * self.mu - self.lam) ** 2))
+
+    def Ln(self):
+        return self.Lq() / self.Pk_prob_sistema_ocupado()
+
+    def W(self):
+        return self.Wq() + (1 / self.mu)
+    
+    def Wq(self):
+        return (self.mu * ((self.lam / self.mu) ** self.k) * self.P0_prob_sistema_vacio()) / ((math.factorial(self.k - 1)) * ((self.k * self.mu - self.lam) ** 2))
+
+    def Wn(self):
+        return self.Wq() / self.Pk_prob_sistema_ocupado()
+
+    def CS_costo_diario_servidor(self, C_S):
+        return self.k * C_S
