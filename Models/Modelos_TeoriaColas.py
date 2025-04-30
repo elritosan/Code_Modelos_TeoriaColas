@@ -159,3 +159,51 @@ class ClassPICM(ClassInfinitas):
 
     def Wn(self):
         return self.Wq() / self.Pk_prob_sistema_ocupado()
+    
+
+class ClassFinitas(ClassBaseTeoriaColas):
+    def __init__(self, lam, mu, M, k=1):
+        super().__init__(lam, mu, k)
+        self.M = M
+        
+    @abstractmethod
+    def PE_prob_sistema_ocupado(self, n):
+        pass
+
+    def Ln(self):
+        return self.Lq() / self.PE_prob_sistema_ocupado()
+    
+    def W(self):
+        return self.Wq() + (1 / self.mu)
+
+    def Wq(self):
+        return self.Lq() / ((self.M - self.L()) * self.lam)
+
+    def Wn(self):
+        return self.Wq() / self.PE_prob_sistema_ocupado()
+
+class ClassPFCS(ClassFinitas):
+    def __init__(self, lam, mu, M, k=1):
+        super().__init__(lam, mu, M, k)
+        self.rho = lam / (mu * M)
+        if self.rho >= 1:
+            raise ValueError("Sistema inestable: λ/(μM) debe ser < 1")
+    
+    def P0_prob_sistema_vacio(self):
+        suma = sum(math.factorial(self.M) / math.factorial(self.M - n) * (self.lam / self.mu) ** n for n in range(self.M + 1))
+        return 1 / suma
+    
+    def PE_prob_sistema_ocupado(self):
+        return 1 - self.P0_prob_sistema_vacio()
+    
+    def Pn(self, n):
+        if n > self.M or n < 0:
+            return 0
+        P0 = self.P0_prob_sistema_vacio()
+        return P0 * (math.factorial(self.M) / math.factorial(self.M - n)) * (self.lam / self.mu) ** n
+    
+    def L(self):
+        return self.M - (self.mu / self.lam) * (1 - self.P0_prob_sistema_vacio())
+
+    def Lq(self):
+        return self.M - ((self.lam + self.mu) / self.lam) * (1 - self.P0_prob_sistema_vacio())

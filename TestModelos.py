@@ -1,4 +1,4 @@
-from Models.Modelos_TeoriaColas import ClassPICS, ClassPICM
+from Models.Modelos_TeoriaColas import ClassPICS, ClassPICM, ClassPFCS
 
 print("Modelo PICS")
 oPICS = ClassPICS(10, 15);
@@ -99,3 +99,55 @@ print(f"Costo diario de espera en cola: {oPICM_Costo.CTE_costo_diario_espera_col
 print(f"Costo diario de tiempo en el sistema: {oPICM_Costo.CTS_costo_diario_tiempo_sistema(3.5)}")
 print(f"Costo diario de tiempo en servicio: {oPICM_Costo.CTSE_costo_diario_servicio(10)}")
 print(f"Costo diario de servidor: {oPICM_Costo.CS_costo_diario_servidor(5)}")
+
+print("\n###############################################################################\n")
+
+print("Modelo PFCS")
+
+oPFCS = ClassPFCS(0.1, 0.5, 4);
+
+r1_pfcs_pn1 = 1;
+r1_pfcs_pn2 = 2;
+r1_pfcs_pmax = 2;
+r1_pfcs_pmin = 2;
+
+print("\nProbabilidades de usuarios en el sistema:")
+
+print(f"Probabilidad de encontrar ({r1_pfcs_pn1}) usuario en el sistema:  {oPFCS.prob_usuarios_sistema(r1_pfcs_pn1)}");
+print(f"Probabilidad de encontrar ({r1_pfcs_pn1}) o ({r1_pfcs_pn2}) usuarios en el sistema:  {oPFCS.prob_usuarios_sistema(r1_pfcs_pn1, r1_pfcs_pn2)}");
+print(f"Probabilidad de encontrar máximo ({r1_pfcs_pmax}) usuarios en el sistema: {oPFCS.prob_max_usuarios_sistema(r1_pfcs_pmax)}");
+print(f"Probabilidad de encontrar al menos ({r1_pfcs_pmin}) usuarios en el sistema: {oPFCS.prob_min_usuarios_sistema(r1_pfcs_pmin)}");
+
+r2_pfcs_pn1 = 2;
+r2_pfcs_pn2 = 3;
+r2_pfcs_pmax = 2;
+r2_pfcs_pmin = 1;
+
+print("\nProbabilidades de usuarios en cola:")
+
+print(f"Probabilidad de encontrar ({r2_pfcs_pn1}) usuario en cola:  {oPFCS.prob_usuarios_cola(r2_pfcs_pn1)}");
+print(f"Probabilidad de encontrar ({r2_pfcs_pn1}) o ({r2_pfcs_pn2}) usuarios en cola:  {oPFCS.prob_usuarios_cola(r2_pfcs_pn1, r2_pfcs_pn2)}");
+print(f"Probabilidad de encontrar máximo ({r2_pfcs_pmax}) usuarios en cola: {oPFCS.prob_max_usuarios_cola(r2_pfcs_pmax)}");
+print(f"Probabilidad de encontrar al menos ({r2_pfcs_pmin}) usuarios en cola: {oPFCS.prob_min_usuarios_cola(r2_pfcs_pmin)}");
+
+print("\nNumero de Clientes:")
+
+print(f"Número esperado de clientes en el sistema: {oPFCS.L()}");
+print(f"Número esperado de clientes en la cola: {oPFCS.Lq()}");
+print(f"Número esperado de clientes en la cola no vacía: {oPFCS.Ln()}");
+
+print("\nTiempos de Espera:")
+
+print(f"Tiempo esperado en el sistema: {oPFCS.W()}");
+print(f"Tiempo esperado en cola: {oPFCS.Wq()}");
+print(f"Tiempo esperado en cola para colas no vacías: {oPFCS.Wn()}");
+
+print("\nModelo PFCS")
+oPFCS_Costo = ClassPFCS(0.1, 0.5, 4);
+
+print("\nCostos Diarios:")
+
+print(f"Costo diario de espera en cola: {oPFCS_Costo.CTE_costo_diario_espera_cola(12)}");
+print(f"Costo diario de tiempo en el sistema: {oPFCS_Costo.CTS_costo_diario_tiempo_sistema(20)}");
+print(f"Costo diario de tiempo en servicio: {oPFCS_Costo.CTSE_costo_diario_servicio(8)}");
+print(f"Costo diario de servidor: {oPFCS_Costo.CS_costo_diario_servidor(6)}");
