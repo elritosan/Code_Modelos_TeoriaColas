@@ -69,9 +69,8 @@ class ClassBaseTeoriaColas(ABC):
     def CTSE_costo_diario_servicio(self, C_TSE):
         return self.lam * 8 * (1 / self.mu) * C_TSE
 
-    @abstractmethod
     def CS_costo_diario_servidor(self, C_S):
-        pass
+        return self.k * C_S
 
     def costo_total_diario(self, C_TE, C_TS, C_TSE, C_S):
         return (self.CTE_costo_diario_espera_cola(C_TE) +
@@ -116,10 +115,7 @@ class ClassPICS(ClassInfinitas):
         return self.lam / (self.mu * (self.mu - self.lam))
 
     def Wn(self):
-        return self.W()
-
-    def CS_costo_diario_servidor(self, C_S):
-        return C_S
+        return self.W()    
 class ClassPICM(ClassInfinitas): 
     def __init__(self, lam, mu, k):
         super().__init__(lam, mu, k)
@@ -163,6 +159,3 @@ class ClassPICM(ClassInfinitas):
 
     def Wn(self):
         return self.Wq() / self.Pk_prob_sistema_ocupado()
-
-    def CS_costo_diario_servidor(self, C_S):
-        return self.k * C_S
