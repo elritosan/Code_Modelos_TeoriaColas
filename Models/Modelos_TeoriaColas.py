@@ -189,24 +189,24 @@ class ClassPFCS(ClassFinitas):
         if self.rho >= 1:
             raise ValueError("Sistema inestable: λ/(μM) debe ser < 1")
     
-    def P0_prob_sistema_vacio(self):
+    def P0_prob_sistema_desocupado(self):
         suma = sum(math.factorial(self.M) / math.factorial(self.M - n) * (self.lam / self.mu) ** n for n in range(self.M + 1))
         return 1 / suma
     
     def PE_prob_sistema_ocupado(self):
-        return 1 - self.P0_prob_sistema_vacio()
+        return 1 - self.P0_prob_sistema_desocupado()
     
     def Pn(self, n):
         if n > self.M or n < 0:
             return 0
-        P0 = self.P0_prob_sistema_vacio()
+        P0 = self.P0_prob_sistema_desocupado()
         return P0 * (math.factorial(self.M) / math.factorial(self.M - n)) * (self.lam / self.mu) ** n
     
     def L(self):
-        return self.M - (self.mu / self.lam) * (1 - self.P0_prob_sistema_vacio())
+        return self.M - (self.mu / self.lam) * (1 - self.P0_prob_sistema_desocupado())
 
     def Lq(self):
-        return self.M - ((self.lam + self.mu) / self.lam) * (1 - self.P0_prob_sistema_vacio())
+        return self.M - ((self.lam + self.mu) / self.lam) * (1 - self.P0_prob_sistema_desocupado())
 class ClassPFCM(ClassFinitas):
     def __init__(self, lam, mu, M, k):
         super().__init__(lam, mu, M, k)
@@ -214,7 +214,7 @@ class ClassPFCM(ClassFinitas):
         if self.rho >= 1:
             raise ValueError("Sistema inestable: λ/(μM) debe ser < 1")
         
-    def P0_prob_sistema_vacio(self):
+    def P0_prob_sistema_desocupado(self):
         suma = 0
         for n in range(0, self.k):
             termino = math.factorial(self.M) / (math.factorial(self.M - n) * math.factorial(n)) * (self.lam / self.mu) ** n
@@ -230,7 +230,7 @@ class ClassPFCM(ClassFinitas):
     def Pn(self, n):
         if n < 0 or n > self.M:
             return 0
-        P0 = self.P0_prob_sistema_vacio()
+        P0 = self.P0_prob_sistema_desocupado()
         if n < self.k:
             return P0 * math.factorial(self.M) / (math.factorial(self.M - n) * math.factorial(n)) * (self.lam / self.mu) ** n
         else:
