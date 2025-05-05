@@ -44,7 +44,7 @@ print(f"Tiempo esperado en cola: {oPICS.Wq()}")
 print(f"Tiempo esperado en cola para colas no vacías: {oPICS.Wn()}")
 
 print("\nModelo PICS")
-oPICS_Costo = ClassPICS(lam_pics, mu_pics);
+oPICS_Costo = ClassPICS(5, 10);
 
 print("\nCostos Diarios:")
 
@@ -101,7 +101,7 @@ print(f"Tiempo esperado en cola: {oPICM.Wq()}")
 print(f"Tiempo esperado en cola para colas no vacías: {oPICM.Wn()}")
 
 print("\nModelo PICM")
-oPICM_Costo = ClassPICM(lam_picm, mu_picm, k_picm);
+oPICM_Costo = ClassPICM(5, 10, 1);
 
 print("\nCostos Diarios:")
 
@@ -157,7 +157,7 @@ print(f"Tiempo esperado en cola: {oPFCS.Wq()}");
 print(f"Tiempo esperado en cola para colas no vacías: {oPFCS.Wn()}");
 
 print("\nModelo PFCS")
-oPFCS_Costo = ClassPFCS(lam_pfcs, mu_pfcs, m_pfcs);
+oPFCS_Costo = ClassPFCS(0.1, 0.5, 4);
 
 print("\nCostos Diarios:")
 
@@ -216,7 +216,7 @@ print(f"Tiempo esperado en cola: {oPFCM.Wq()}");
 print(f"Tiempo esperado en cola para colas no vacías: {oPFCM.Wn()}");
 
 print("\nModelo PFCM")
-oPFCM_Costo = ClassPFCM(lam_pfcm, mu_pfcm, m_pfcm, k_pfcm);
+oPFCM_Costo = ClassPFCM(0.1, 0.5, 4, 2);
 
 print("\nCostos Diarios:")
 
