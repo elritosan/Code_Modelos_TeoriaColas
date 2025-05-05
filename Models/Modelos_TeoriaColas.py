@@ -214,7 +214,7 @@ class ClassPFCM(ClassFinitas):
         if self.rho >= 1:
             raise ValueError("Sistema inestable: λ/(μM) debe ser < 1")
         
-    def P0_prob_sistema_desocupado(self):
+    def P0_prob_sistema_vacio(self):
         suma = 0
         for n in range(0, self.k):
             termino = math.factorial(self.M) / (math.factorial(self.M - n) * math.factorial(n)) * (self.lam / self.mu) ** n
@@ -230,13 +230,13 @@ class ClassPFCM(ClassFinitas):
     def Pn(self, n):
         if n < 0 or n > self.M:
             return 0
-        P0 = self.P0_prob_sistema_desocupado()
+        P0 = self.P0_prob_sistema_vacio()
         if n < self.k:
             return P0 * math.factorial(self.M) / (math.factorial(self.M - n) * math.factorial(n)) * (self.lam / self.mu) ** n
         else:
             return P0 * math.factorial(self.M) / (math.factorial(self.M - n) * math.factorial(self.k) * self.k ** (n - self.k)) * (self.lam / self.mu) ** n
 
-    def PNE_prob_no_esperar(self):
+    def PNE_prob_sistema_desocupado(self):
         return 1 - self.PE_prob_sistema_ocupado()
 
     def L(self):
@@ -244,7 +244,6 @@ class ClassPFCM(ClassFinitas):
         suma2 = sum((n - self.k) * self.Pn(n) for n in range(self.k, self.M + 1))
         suma3 = self.k * (1 - sum(self.Pn(n) for n in range(0, self.k)))
         return suma1 + suma2 + suma3
-
 
     def Lq(self):
         return sum((n - self.k) * self.Pn(n) for n in range(self.k, self.M + 1))

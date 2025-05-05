@@ -10,6 +10,8 @@ r1_pics_pmin = 2;
 
 print("\nProbabilidades de usuarios en el sistema:")
 
+print(f"Probabilidad de encontrar sistema Ocupado:  {oPICS.rho_prob_sistema_ocupado()}");
+print(f"Probabilidad de encontrar sistema desocupado:  {oPICS.P0_prob_sistema_desocupado()}");
 print(f"Probabilidad de encontrar ({r1_pics_pn1}) usuario en el sistema:  {oPICS.prob_usuarios_sistema(r1_pics_pn1)}");
 print(f"Probabilidad de encontrar ({r1_pics_pn1}) o ({r1_pics_pn2}) usuarios en el sistema:  {oPICS.prob_usuarios_sistema(r1_pics_pn1, r1_pics_pn2)}");
 print(f"Probabilidad de encontrar máximo ({r1_pics_pmax}) usuarios en el sistema: {oPICS.prob_max_usuarios_sistema(r1_pics_pmax)}");
@@ -61,6 +63,9 @@ r1_picm_pmin = 2;
 
 print("\nProbabilidades de usuarios en el sistema:")
 
+print(f"Probabilidad de encontrar sistema Vacio:  {oPICM.P0_prob_sistema_vacio()}");
+print(f"Probabilidad de encontrar sistema Ocupado:  {oPICM.Pk_prob_sistema_ocupado()}");
+print(f"Probabilidad de encontrar sistema desocupado:  {oPICM.PNE_prob_sistema_desocupado()}");
 print(f"Probabilidad de encontrar ({r1_picm_pn1}) usuario en el sistema:  {oPICM.prob_usuarios_sistema(r1_picm_pn1)}");
 print(f"Probabilidad de encontrar ({r1_picm_pn1}) o ({r1_picm_pn2}) usuarios en el sistema:  {oPICM.prob_usuarios_sistema(r1_picm_pn1, r1_picm_pn2)}");
 print(f"Probabilidad de encontrar máximo ({r1_picm_pmax}) usuarios en el sistema: {oPICM.prob_max_usuarios_sistema(r1_picm_pmax)}");
@@ -113,6 +118,8 @@ r1_pfcs_pmin = 2;
 
 print("\nProbabilidades de usuarios en el sistema:")
 
+print(f"Probabilidad de encontrar sistema Ocupado:  {oPFCS.PE_prob_sistema_ocupado()}");
+print(f"Probabilidad de encontrar sistema desocupado:  {oPFCS.P0_prob_sistema_desocupado()}");
 print(f"Probabilidad de encontrar ({r1_pfcs_pn1}) usuario en el sistema:  {oPFCS.prob_usuarios_sistema(r1_pfcs_pn1)}");
 print(f"Probabilidad de encontrar ({r1_pfcs_pn1}) o ({r1_pfcs_pn2}) usuarios en el sistema:  {oPFCS.prob_usuarios_sistema(r1_pfcs_pn1, r1_pfcs_pn2)}");
 print(f"Probabilidad de encontrar máximo ({r1_pfcs_pmax}) usuarios en el sistema: {oPFCS.prob_max_usuarios_sistema(r1_pfcs_pmax)}");
@@ -165,6 +172,9 @@ r1_pfcm_pmin = 2;
 
 print("\nProbabilidades de usuarios en el sistema:")
 
+print(f"Probabilidad de encontrar sistema Vacio:  {oPFCM.P0_prob_sistema_vacio()}");
+print(f"Probabilidad de encontrar sistema Ocupado:  {oPFCM.PE_prob_sistema_ocupado()}");
+print(f"Probabilidad de encontrar sistema desocupado:  {oPFCM.PNE_prob_sistema_desocupado()}");
 print(f"Probabilidad de encontrar ({r1_pfcm_pn1}) usuario en el sistema:  {oPFCM.prob_usuarios_sistema(r1_pfcm_pn1)}");
 print(f"Probabilidad de encontrar ({r1_pfcm_pn1}) o ({r1_pfcm_pn2}) usuarios en el sistema:  {oPFCM.prob_usuarios_sistema(r1_pfcm_pn1, r1_pfcm_pn2)}");
 print(f"Probabilidad de encontrar máximo ({r1_pfcm_pmax}) usuarios en el sistema: {oPFCM.prob_max_usuarios_sistema(r1_pfcm_pmax)}");
