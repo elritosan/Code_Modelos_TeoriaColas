@@ -60,17 +60,21 @@ class ClassBaseTeoriaColas(ABC):
     def Wn(self):
         pass
 
+    @abstractmethod
     def CTE_costo_diario_espera_cola(self, C_TE):
-        return self.lam * 8 * self.Wq() * C_TE
+        pass
 
+    @abstractmethod
     def CTS_costo_diario_tiempo_sistema(self, C_TS):
-        return self.lam * 8 * self.W() * C_TS
+        pass
 
+    @abstractmethod
     def CTSE_costo_diario_servicio(self, C_TSE):
-        return self.lam * 8 * (1 / self.mu) * C_TSE
+        pass
 
+    @abstractmethod
     def CS_costo_diario_servidor(self, C_S):
-        return self.k * C_S
+        pass
 
     def costo_total_diario(self, C_TE, C_TS, C_TSE, C_S):
         return (self.CTE_costo_diario_espera_cola(C_TE) +
@@ -82,6 +86,18 @@ class ClassBaseTeoriaColas(ABC):
 class ClassInfinitas(ClassBaseTeoriaColas):
     def __init__(self, lam, mu, k=1):
         super().__init__(lam, mu, k)
+        
+    def CTE_costo_diario_espera_cola(self, C_TE):
+        return self.lam * 8 * self.Wq() * C_TE
+
+    def CTS_costo_diario_tiempo_sistema(self, C_TS):
+        return self.lam * 8 * self.W() * C_TS
+
+    def CTSE_costo_diario_servicio(self, C_TSE):
+        return self.lam * 8 * (1 / self.mu) * C_TSE
+
+    def CS_costo_diario_servidor(self, C_S):
+        return self.k * C_S
 
 class ClassPICS(ClassInfinitas):
     def __init__(self, lam, mu):
@@ -181,13 +197,22 @@ class ClassFinitas(ClassBaseTeoriaColas):
 
     def Wn(self):
         return self.Wq() / self.PE_prob_sistema_ocupado()
+    
+    def CTE_costo_diario_espera_cola(self, C_TE):
+        return self.L() * 8 * C_TE
+
+    def CTS_costo_diario_tiempo_sistema(self, C_TS):
+        return self.L() * 8 * C_TS
+
+    def CTSE_costo_diario_servicio(self, C_TSE):
+        return self.L() * 8 * C_TSE
+
+    def CS_costo_diario_servidor(self, C_S):
+        return self.k * C_S
 
 class ClassPFCS(ClassFinitas):
     def __init__(self, lam, mu, M, k=1):
         super().__init__(lam, mu, M, k)
-        self.rho = lam / (mu * M)
-        if self.rho >= 1:
-            raise ValueError("Sistema inestable: λ/(μM) debe ser < 1")
     
     def P0_prob_sistema_desocupado(self):
         suma = sum(math.factorial(self.M) / math.factorial(self.M - n) * (self.lam / self.mu) ** n for n in range(self.M + 1))
@@ -210,9 +235,6 @@ class ClassPFCS(ClassFinitas):
 class ClassPFCM(ClassFinitas):
     def __init__(self, lam, mu, M, k):
         super().__init__(lam, mu, M, k)
-        self.rho = lam / (mu * M)
-        if self.rho >= 1:
-            raise ValueError("Sistema inestable: λ/(μM) debe ser < 1")
         
     def P0_prob_sistema_vacio(self):
         suma = 0
