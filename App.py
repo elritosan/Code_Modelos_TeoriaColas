@@ -6,7 +6,20 @@ class QueueTheoryApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Modelos de Teoría de Colas")
-        self.root.geometry("1000x800")
+        
+        self.ancho = 900
+        self.alto = 600
+        self.root.geometry(f"{self.ancho}x{self.alto}+0+0")  # Añade +0+0 para posición x=0, y=0
+        
+        # Obtener dimensiones de pantalla y ajustar posición si es necesario
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        
+        # Si la ventana es muy grande, ajustar posición para que no se salga
+        if self.ancho > screen_width or self.alto > screen_height:
+            self.root.geometry(f"{min(self.ancho, screen_width-50)}x{min(self.alto, screen_height-50)}+10+10")
+        else:
+            self.root.geometry(f"{self.ancho}x{self.alto}+0+0")  # Esquina superior izquierda
         
         self.create_main_interface()
         
@@ -453,100 +466,149 @@ class QueueTheoryApp:
             self.lbl_qmin_result.config(text=f"Error: {str(e)}")
     
     def create_metrics_tab(self, parent):
-        """Crea la pestaña de métricas"""
-        # Número de clientes
-        lbl_clients = tk.Label(parent, text="Número Esperado de Clientes", font=('Arial', 10, 'bold'))
-        lbl_clients.pack(pady=5, anchor='w')
+        """Crea la pestaña de métricas con labels y valores alineados"""
+        # Frame principal
+        metrics_frame = tk.Frame(parent)
+        metrics_frame.pack(fill='both', expand=True, padx=10, pady=10)
         
-        self.add_result_row(parent, "En el sistema (L):", self.model.L())
-        self.add_result_row(parent, "En la cola (Lq):", self.model.Lq())
+        # Configuración de estilo
+        label_style = {'padx': 5, 'pady': 2, 'sticky': 'e'}
+        value_style = {'padx': 5, 'pady': 2, 'sticky': 'w'}
+        
+        # Número de Clientes (usando grid para mejor alineación)
+        client_frame = tk.LabelFrame(metrics_frame, text="Número Esperado de Clientes", font=('Arial', 9, 'bold'))
+        client_frame.pack(fill='x', pady=5)
+        
+        tk.Label(client_frame, text="En el sistema (L):").grid(row=0, column=0, **label_style)
+        tk.Label(client_frame, text=f"{self.model.L():.6f}").grid(row=0, column=1, **value_style)
+        
+        tk.Label(client_frame, text="En la cola (Lq):").grid(row=1, column=0, **label_style)
+        tk.Label(client_frame, text=f"{self.model.Lq():.6f}").grid(row=1, column=1, **value_style)
+        
         if hasattr(self.model, 'Ln'):
-            self.add_result_row(parent, "En cola no vacía (Ln):", self.model.Ln())
+            tk.Label(client_frame, text="En cola no vacía (Ln):").grid(row=2, column=0, **label_style)
+            tk.Label(client_frame, text=f"{self.model.Ln():.6f}").grid(row=2, column=1, **value_style)
         
-        # Tiempos de espera
-        lbl_times = tk.Label(parent, text="Tiempos Esperados de Espera", font=('Arial', 10, 'bold'))
-        lbl_times.pack(pady=5, anchor='w')
+        # Tiempos de Espera
+        time_frame = tk.LabelFrame(metrics_frame, text="Tiempos Esperados de Espera", font=('Arial', 9, 'bold'))
+        time_frame.pack(fill='x', pady=5)
         
-        self.add_result_row(parent, "En el sistema (W):", self.model.W())
-        self.add_result_row(parent, "En la cola (Wq):", self.model.Wq())
+        tk.Label(time_frame, text="En el sistema (W):").grid(row=0, column=0, **label_style)
+        tk.Label(time_frame, text=f"{self.model.W():.6f}").grid(row=0, column=1, **value_style)
+        
+        tk.Label(time_frame, text="En la cola (Wq):").grid(row=1, column=0, **label_style)
+        tk.Label(time_frame, text=f"{self.model.Wq():.6f}").grid(row=1, column=1, **value_style)
+        
         if hasattr(self.model, 'Wn'):
-            self.add_result_row(parent, "En cola no vacía (Wn):", self.model.Wn())
+            tk.Label(time_frame, text="En cola no vacía (Wn):").grid(row=2, column=0, **label_style)
+            tk.Label(time_frame, text=f"{self.model.Wn():.6f}").grid(row=2, column=1, **value_style)
     
     def create_cost_tab(self, parent):
-        """Crea la pestaña de costos (para modelos infinitos)"""
-        # Frame para ingresar costos y horas laborables
-        cost_input_frame = tk.Frame(parent)
-        cost_input_frame.pack(pady=10)
+        """Crea la pestaña de costos con inputs en col1 y outputs en col2"""
+        main_frame = tk.Frame(parent)
+        main_frame.pack(fill='both', expand=True, padx=10, pady=10)
         
-        # Agregar campo para horas laborables
-        lbl_hrlab = tk.Label(cost_input_frame, text="Horas laborables al día (hrlab):")
-        lbl_hrlab.grid(row=0, column=0, padx=5, pady=5, sticky='e')
-        self.entry_hrlab = tk.Entry(cost_input_frame)
-        self.entry_hrlab.grid(row=0, column=1, padx=5, pady=5)
-        self.entry_hrlab.insert(0, "8")  # Valor por defecto: 8 horas
+        # Contenedor principal que incluye columnas y botón
+        container = tk.Frame(main_frame)
+        container.pack(fill='both', expand=True)
         
-        lbl_cte = tk.Label(cost_input_frame, text="Costo espera en cola (CTE):")
-        lbl_cte.grid(row=1, column=0, padx=5, pady=5, sticky='e')
-        self.entry_cte = tk.Entry(cost_input_frame)
-        self.entry_cte.grid(row=1, column=1, padx=5, pady=5)
+        # Contenedor de columnas (arriba)
+        columns_frame = tk.Frame(container)
+        columns_frame.pack(fill='both', expand=True)
         
-        lbl_cts = tk.Label(cost_input_frame, text="Costo tiempo sistema (CTS):")
-        lbl_cts.grid(row=2, column=0, padx=5, pady=5, sticky='e')
-        self.entry_cts = tk.Entry(cost_input_frame)
-        self.entry_cts.grid(row=2, column=1, padx=5, pady=5)
+        # Columna 1 - Inputs
+        col1 = tk.Frame(columns_frame)
+        col1.pack(side='left', fill='both', expand=True, padx=5)
         
-        lbl_ctse = tk.Label(cost_input_frame, text="Costo tiempo servicio (CTSE):")
-        lbl_ctse.grid(row=3, column=0, padx=5, pady=5, sticky='e')
-        self.entry_ctse = tk.Entry(cost_input_frame)
-        self.entry_ctse.grid(row=3, column=1, padx=5, pady=5)
+        # Columna 2 - Outputs
+        col2 = tk.Frame(columns_frame)
+        col2.pack(side='left', fill='both', expand=True, padx=5)
         
-        lbl_cs = tk.Label(cost_input_frame, text="Costo servidor (CS):")
-        lbl_cs.grid(row=4, column=0, padx=5, pady=5, sticky='e')
-        self.entry_cs = tk.Entry(cost_input_frame)
-        self.entry_cs.grid(row=4, column=1, padx=5, pady=5)
+        # Estilo común
+        label_style = {'padx': 5, 'pady': 2, 'sticky': 'e'}
+        entry_style = {'padx': 5, 'pady': 2, 'sticky': 'w'}
         
-        btn_calc_cost = tk.Button(parent, text="Calcular Costos", command=self.show_cost_results)
-        btn_calc_cost.pack(pady=10)
+        # Inputs (Columna 1)
+        tk.Label(col1, text="Horas laborables al día (hrlab):").grid(row=0, **label_style)
+        self.entry_hrlab = tk.Entry(col1, width=12)
+        self.entry_hrlab.grid(row=0, column=1, **entry_style)
+        self.entry_hrlab.insert(0, "8")
         
-        # Frame para resultados de costos
-        self.cost_result_frame = tk.Frame(parent)
-        self.cost_result_frame.pack(fill='both', expand=True, padx=10, pady=5)
-
+        tk.Label(col1, text="Costo espera en cola (CTE):").grid(row=1, **label_style)
+        self.entry_cte = tk.Entry(col1, width=12)
+        self.entry_cte.grid(row=1, column=1, **entry_style)
+        
+        tk.Label(col1, text="Costo tiempo sistema (CTS):").grid(row=2, **label_style)
+        self.entry_cts = tk.Entry(col1, width=12)
+        self.entry_cts.grid(row=2, column=1, **entry_style)
+        
+        tk.Label(col1, text="Costo tiempo servicio (CTSE):").grid(row=3, **label_style)
+        self.entry_ctse = tk.Entry(col1, width=12)
+        self.entry_ctse.grid(row=3, column=1, **entry_style)
+        
+        tk.Label(col1, text="Costo servidor (CS):").grid(row=4, **label_style)
+        self.entry_cs = tk.Entry(col1, width=12)
+        self.entry_cs.grid(row=4, column=1, **entry_style)
+        
+        # Outputs (Columna 2) - Inicialmente vacíos
+        self.output_labels = {
+            'hrlab': tk.Label(col2, text="Horas laborables al día:"),
+            'cte': tk.Label(col2, text="Costo diario espera en cola (CTE):"),
+            'cts': tk.Label(col2, text="Costo diario tiempo en sistema (CTS):"),
+            'ctse': tk.Label(col2, text="Costo diario tiempo en servicio (CTSE):"),
+            'cs': tk.Label(col2, text="Costo diario servidor (CS):"),
+            'total': tk.Label(col2, text="COSTO TOTAL DIARIO:", font=('Arial', 9, 'bold'))
+        }
+        
+        self.output_values = {
+            'hrlab': tk.Label(col2, text=""),
+            'cte': tk.Label(col2, text=""),
+            'cts': tk.Label(col2, text=""),
+            'ctse': tk.Label(col2, text=""),
+            'cs': tk.Label(col2, text=""),
+            'total': tk.Label(col2, text="", font=('Arial', 9, 'bold'))
+        }
+        
+        for i, key in enumerate(['hrlab', 'cte', 'cts', 'ctse', 'cs']):
+            self.output_labels[key].grid(row=i, column=0, **label_style)
+            self.output_values[key].grid(row=i, column=1, **entry_style)
+        
+        # Botón de cálculo justo debajo de las columnas
+        btn_frame = tk.Frame(container)
+        btn_frame.pack(fill='x', pady=(5, 0))  # Reducimos espacio superior
+        tk.Button(btn_frame, text="Calcular", command=self.show_cost_results).pack(pady=5)
+        
     def show_cost_results(self):
-        """Muestra los resultados de costos"""
-        self.clear_frame(self.cost_result_frame)
-        
+        """Actualiza los outputs en la columna 2 con los resultados"""
         try:
             # Obtener y establecer horas laborables
             hrlab = float(self.entry_hrlab.get()) if self.entry_hrlab.get() else 8
             self.model.set_hrlab(hrlab)
             
-            # Obtener los demás parámetros de costo
+            # Obtener costos
             cte = float(self.entry_cte.get()) if self.entry_cte.get() else 0
             cts = float(self.entry_cts.get()) if self.entry_cts.get() else 0
             ctse = float(self.entry_ctse.get()) if self.entry_ctse.get() else 0
             cs = float(self.entry_cs.get()) if self.entry_cs.get() else 0
             
-            # Mostrar las horas laborables usadas
-            self.add_result_row(self.cost_result_frame, "Horas laborables al día:", f"{hrlab} horas")
+            # Actualizar outputs
+            self.output_values['hrlab'].config(text=f"{hrlab} horas")
+            self.output_values['cte'].config(text=f"${self.model.CTE_costo_diario_espera_cola(cte):.2f}")
+            self.output_values['cts'].config(text=f"${self.model.CTS_costo_diario_tiempo_sistema(cts):.2f}")
+            self.output_values['ctse'].config(text=f"${self.model.CTSE_costo_diario_servicio(ctse):.2f}")
+            self.output_values['cs'].config(text=f"${self.model.CS_costo_diario_servidor(cs):.2f}")
             
-            # Mostrar los resultados de costos con formato de moneda
-            self.add_result_row(self.cost_result_frame, "Costo diario espera en cola (CTE):", 
-                            f"${self.model.CTE_costo_diario_espera_cola(cte):.2f}")
-            self.add_result_row(self.cost_result_frame, "Costo diario tiempo en sistema (CTS):", 
-                            f"${self.model.CTS_costo_diario_tiempo_sistema(cts):.2f}")
-            self.add_result_row(self.cost_result_frame, "Costo diario tiempo en servicio (CTSE):", 
-                            f"${self.model.CTSE_costo_diario_servicio(ctse):.2f}")
-            self.add_result_row(self.cost_result_frame, "Costo diario servidor (CS):", 
-                            f"${self.model.CS_costo_diario_servidor(cs):.2f}")
-            self.add_result_row(self.cost_result_frame, "COSTO TOTAL DIARIO:", 
-                            f"${self.model.costo_total_diario(cte, cts, ctse, cs):.2f}", bold=True)
+            # Calcular y mostrar total
+            total = self.model.costo_total_diario(cte, cts, ctse, cs)
+            self.output_values['total'].config(text=f"${total:.2f}")
+            
+            # Asegurarse que el total se muestra
+            self.output_labels['total'].grid(row=5, column=0, **{'padx': 5, 'pady': 2, 'sticky': 'e'})
+            self.output_values['total'].grid(row=5, column=1, **{'padx': 5, 'pady': 2, 'sticky': 'w'})
             
         except ValueError:
             messagebox.showerror("Error", "Por favor ingrese valores numéricos válidos")
-        except Exception as e:
-            messagebox.showerror("Error", f"Ocurrió un error al calcular costos: {str(e)}")
-            
+        
     def add_result_row(self, parent, label, value, bold=False):
         """Añade una fila de resultado a la interfaz"""
         frame = tk.Frame(parent)
