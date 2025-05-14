@@ -474,61 +474,79 @@ class QueueTheoryApp:
     
     def create_cost_tab(self, parent):
         """Crea la pestaña de costos (para modelos infinitos)"""
-        # Frame para ingresar costos
+        # Frame para ingresar costos y horas laborables
         cost_input_frame = tk.Frame(parent)
         cost_input_frame.pack(pady=10)
         
+        # Agregar campo para horas laborables
+        lbl_hrlab = tk.Label(cost_input_frame, text="Horas laborables al día (hrlab):")
+        lbl_hrlab.grid(row=0, column=0, padx=5, pady=5, sticky='e')
+        self.entry_hrlab = tk.Entry(cost_input_frame)
+        self.entry_hrlab.grid(row=0, column=1, padx=5, pady=5)
+        self.entry_hrlab.insert(0, "8")  # Valor por defecto: 8 horas
+        
         lbl_cte = tk.Label(cost_input_frame, text="Costo espera en cola (CTE):")
-        lbl_cte.grid(row=0, column=0, padx=5, pady=5)
+        lbl_cte.grid(row=1, column=0, padx=5, pady=5, sticky='e')
         self.entry_cte = tk.Entry(cost_input_frame)
-        self.entry_cte.grid(row=0, column=1, padx=5, pady=5)
+        self.entry_cte.grid(row=1, column=1, padx=5, pady=5)
         
         lbl_cts = tk.Label(cost_input_frame, text="Costo tiempo sistema (CTS):")
-        lbl_cts.grid(row=1, column=0, padx=5, pady=5)
+        lbl_cts.grid(row=2, column=0, padx=5, pady=5, sticky='e')
         self.entry_cts = tk.Entry(cost_input_frame)
-        self.entry_cts.grid(row=1, column=1, padx=5, pady=5)
+        self.entry_cts.grid(row=2, column=1, padx=5, pady=5)
         
         lbl_ctse = tk.Label(cost_input_frame, text="Costo tiempo servicio (CTSE):")
-        lbl_ctse.grid(row=2, column=0, padx=5, pady=5)
+        lbl_ctse.grid(row=3, column=0, padx=5, pady=5, sticky='e')
         self.entry_ctse = tk.Entry(cost_input_frame)
-        self.entry_ctse.grid(row=2, column=1, padx=5, pady=5)
+        self.entry_ctse.grid(row=3, column=1, padx=5, pady=5)
         
         lbl_cs = tk.Label(cost_input_frame, text="Costo servidor (CS):")
-        lbl_cs.grid(row=3, column=0, padx=5, pady=5)
+        lbl_cs.grid(row=4, column=0, padx=5, pady=5, sticky='e')
         self.entry_cs = tk.Entry(cost_input_frame)
-        self.entry_cs.grid(row=3, column=1, padx=5, pady=5)
+        self.entry_cs.grid(row=4, column=1, padx=5, pady=5)
         
         btn_calc_cost = tk.Button(parent, text="Calcular Costos", command=self.show_cost_results)
-        btn_calc_cost.pack(pady=5)
+        btn_calc_cost.pack(pady=10)
         
         # Frame para resultados de costos
         self.cost_result_frame = tk.Frame(parent)
-        self.cost_result_frame.pack(fill='both', expand=True)
-    
+        self.cost_result_frame.pack(fill='both', expand=True, padx=10, pady=5)
+
     def show_cost_results(self):
         """Muestra los resultados de costos"""
         self.clear_frame(self.cost_result_frame)
         
         try:
+            # Obtener y establecer horas laborables
+            hrlab = float(self.entry_hrlab.get()) if self.entry_hrlab.get() else 8
+            self.model.set_hrlab(hrlab)
+            
+            # Obtener los demás parámetros de costo
             cte = float(self.entry_cte.get()) if self.entry_cte.get() else 0
             cts = float(self.entry_cts.get()) if self.entry_cts.get() else 0
             ctse = float(self.entry_ctse.get()) if self.entry_ctse.get() else 0
             cs = float(self.entry_cs.get()) if self.entry_cs.get() else 0
             
-            self.add_result_row(self.cost_result_frame, "Costo diario espera en cola:", 
-                              self.model.CTE_costo_diario_espera_cola(cte))
-            self.add_result_row(self.cost_result_frame, "Costo diario tiempo en sistema:", 
-                              self.model.CTS_costo_diario_tiempo_sistema(cts))
-            self.add_result_row(self.cost_result_frame, "Costo diario tiempo en servicio:", 
-                              self.model.CTSE_costo_diario_servicio(ctse))
-            self.add_result_row(self.cost_result_frame, "Costo diario servidor:", 
-                              self.model.CS_costo_diario_servidor(cs))
-            self.add_result_row(self.cost_result_frame, "Costo total diario:", 
-                              self.model.costo_total_diario(cte, cts, ctse, cs), bold=True)
+            # Mostrar las horas laborables usadas
+            self.add_result_row(self.cost_result_frame, "Horas laborables al día:", f"{hrlab} horas")
+            
+            # Mostrar los resultados de costos con formato de moneda
+            self.add_result_row(self.cost_result_frame, "Costo diario espera en cola (CTE):", 
+                            f"${self.model.CTE_costo_diario_espera_cola(cte):.2f}")
+            self.add_result_row(self.cost_result_frame, "Costo diario tiempo en sistema (CTS):", 
+                            f"${self.model.CTS_costo_diario_tiempo_sistema(cts):.2f}")
+            self.add_result_row(self.cost_result_frame, "Costo diario tiempo en servicio (CTSE):", 
+                            f"${self.model.CTSE_costo_diario_servicio(ctse):.2f}")
+            self.add_result_row(self.cost_result_frame, "Costo diario servidor (CS):", 
+                            f"${self.model.CS_costo_diario_servidor(cs):.2f}")
+            self.add_result_row(self.cost_result_frame, "COSTO TOTAL DIARIO:", 
+                            f"${self.model.costo_total_diario(cte, cts, ctse, cs):.2f}", bold=True)
             
         except ValueError:
-            messagebox.showerror("Error", "Por favor ingrese valores numéricos válidos para los costos")
-    
+            messagebox.showerror("Error", "Por favor ingrese valores numéricos válidos")
+        except Exception as e:
+            messagebox.showerror("Error", f"Ocurrió un error al calcular costos: {str(e)}")
+            
     def add_result_row(self, parent, label, value, bold=False):
         """Añade una fila de resultado a la interfaz"""
         frame = tk.Frame(parent)

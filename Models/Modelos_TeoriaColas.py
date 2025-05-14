@@ -8,6 +8,10 @@ class ClassBaseTeoriaColas(ABC):
         self.lam = lam
         self.mu = mu
         self.k = k
+        # self.hrlab  # Horas laborables al día
+    
+    def set_hrlab(self, hrlab):
+        self.hrlab = hrlab
         
     @abstractmethod
     def Pn(self, n):
@@ -88,13 +92,13 @@ class ClassInfinitas(ClassBaseTeoriaColas):
         super().__init__(lam, mu, k)
         
     def CTE_costo_diario_espera_cola(self, C_TE):
-        return self.lam * 8 * self.Wq() * C_TE
+        return self.lam * self.hrlab * self.Wq() * C_TE
 
     def CTS_costo_diario_tiempo_sistema(self, C_TS):
-        return self.lam * 8 * self.W() * C_TS
+        return self.lam * self.hrlab * self.W() * C_TS
 
     def CTSE_costo_diario_servicio(self, C_TSE):
-        return self.lam * 8 * (1 / self.mu) * C_TSE
+        return self.lam * self.hrlab * (1 / self.mu) * C_TSE
 
     def CS_costo_diario_servidor(self, C_S):
         return self.k * C_S
@@ -199,13 +203,13 @@ class ClassFinitas(ClassBaseTeoriaColas):
         return self.Wq() / self.PE_prob_sistema_ocupado()
     
     def CTE_costo_diario_espera_cola(self, C_TE):
-        return self.L() * 8 * C_TE
+        return self.L() * self.hrlab * C_TE
 
     def CTS_costo_diario_tiempo_sistema(self, C_TS):
-        return self.L() * 8 * C_TS
+        return self.L() * self.hrlab * C_TS
 
     def CTSE_costo_diario_servicio(self, C_TSE):
-        return self.L() * 8 * C_TSE
+        return self.L() * self.hrlab * C_TSE
 
     def CS_costo_diario_servidor(self, C_S):
         return self.k * C_S
