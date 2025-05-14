@@ -48,6 +48,8 @@ oPICS_Costo = ClassPICS(lam_pics, mu_pics);
 
 print("\nCostos Diarios:")
 
+oPICS_Costo.set_hrlab(8)  # Establecer horas laborables al día
+
 print(f"Costo diario de espera en cola: {oPICS_Costo.CTE_costo_diario_espera_cola(10)}")
 print(f"Costo diario de tiempo en el sistema: {oPICS_Costo.CTS_costo_diario_tiempo_sistema(3.5)}")
 print(f"Costo diario de tiempo en servicio: {oPICS_Costo.CTSE_costo_diario_servicio(10)}")
@@ -105,6 +107,8 @@ oPICM_Costo = ClassPICM(lam_picm, mu_picm, k_picm);
 
 print("\nCostos Diarios:")
 
+oPICM_Costo.set_hrlab(8)  # Establecer horas laborables al día
+
 print(f"Costo diario de espera en cola: {oPICM_Costo.CTE_costo_diario_espera_cola(10)}")
 print(f"Costo diario de tiempo en el sistema: {oPICM_Costo.CTS_costo_diario_tiempo_sistema(3.5)}")
 print(f"Costo diario de tiempo en servicio: {oPICM_Costo.CTSE_costo_diario_servicio(10)}")
@@ -161,10 +165,12 @@ oPFCS_Costo = ClassPFCS(lam_pfcs, mu_pfcs, m_pfcs);
 
 print("\nCostos Diarios:")
 
-print(f"Costo diario de espera en cola: {oPFCS_Costo.CTE_costo_diario_espera_cola(12)}");
+oPFCS_Costo.set_hrlab(8)  # Establecer horas laborables al día
+
+print(f"Costo diario de espera en cola: {oPFCS_Costo.CTE_costo_diario_espera_cola(0)}");
 print(f"Costo diario de tiempo en el sistema: {oPFCS_Costo.CTS_costo_diario_tiempo_sistema(20)}");
-print(f"Costo diario de tiempo en servicio: {oPFCS_Costo.CTSE_costo_diario_servicio(8)}");
-print(f"Costo diario de servidor: {oPFCS_Costo.CS_costo_diario_servidor(6)}");
+print(f"Costo diario de tiempo en servicio: {oPFCS_Costo.CTSE_costo_diario_servicio(0)}");
+print(f"Costo diario de servidor: {oPFCS_Costo.CS_costo_diario_servidor(50)}");
 
 print("\n###############################################################################\n")
 
@@ -220,7 +226,9 @@ oPFCM_Costo = ClassPFCM(lam_pfcm, mu_pfcm, m_pfcm, k_pfcm);
 
 print("\nCostos Diarios:")
 
-print(f"Costo diario de espera en cola: {oPFCM_Costo.CTE_costo_diario_espera_cola(15)}");
-print(f"Costo diario de tiempo en el sistema: {oPFCM_Costo.CTS_costo_diario_tiempo_sistema(25)}");
-print(f"Costo diario de tiempo en servicio: {oPFCM_Costo.CTSE_costo_diario_servicio(10)}");
-print(f"Costo diario de servidor: {oPFCM_Costo.CS_costo_diario_servidor(7)}");
+oPFCM_Costo.set_hrlab(8)  # Establecer horas laborables al día
+
+print(f"Costo diario de espera en cola: {oPFCM_Costo.CTE_costo_diario_espera_cola(0)}");
+print(f"Costo diario de tiempo en el sistema: {oPFCM_Costo.CTS_costo_diario_tiempo_sistema(20)}");
+print(f"Costo diario de tiempo en servicio: {oPFCM_Costo.CTSE_costo_diario_servicio(0)}");
+print(f"Costo diario de servidor: {oPFCM_Costo.CS_costo_diario_servidor(50)}");
