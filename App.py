@@ -345,7 +345,7 @@ class QueueTheoryApp:
                 details.append(f"P(n={n}) = {pn:.6f}")
                 total += pn
             
-            result_text = f"Resultado: {prob:.6f}\n" + "\n".join(details)
+            result_text = f"P(n): P({values}) = {prob:.6f}\n" + "\n".join(details)
             self.lbl_pn_result.config(text=result_text)
             
         except ValueError:
@@ -362,15 +362,15 @@ class QueueTheoryApp:
                 return
                 
             value = int(input_str)
-            prob = self.model.prob_max_usuarios_sistema(value)
+            prob, limite = self.model.prob_max_usuarios_sistema(value)
             
             # Construir detalles
             details = []
-            for n in range(value + 1):
+            for n in range(0, limite + 1):
                 pn = self.model.Pn(n)
                 details.append(f"P(n={n}) = {pn:.6f}")
             
-            result_text = f"Resultado: {prob:.6f}\n" + "\n".join(details)
+            result_text = f"P(<=n): P(<={value}) = {prob:.6f}\n" + "\n".join(details)
             self.lbl_pmax_result.config(text=result_text)
             
         except ValueError:
@@ -387,8 +387,16 @@ class QueueTheoryApp:
                 return
                 
             value = int(input_str)
-            prob = self.model.prob_min_usuarios_sistema(value)
-            self.lbl_pmin_result.config(text=f"Resultado: {prob:.6f}")
+            prob, limite = self.model.prob_min_usuarios_sistema(value)
+            
+            # Construir detalles
+            details = []
+            for n in range(0, limite + 1):
+                pn = self.model.Pn(n)
+                details.append(f"P(n={n}) = {pn:.6f}")
+            
+            result_text = f"P(>=n): P(>={value}) = 1 - ({1-prob:.6f}) = {prob:.6f}\n" + "\n".join(details)
+            self.lbl_pmin_result.config(text=result_text)
         except Exception as e:
             self.lbl_pmin_result.config(text=f"Error: {str(e)}")
     
@@ -435,15 +443,15 @@ class QueueTheoryApp:
                 return
                 
             value = int(input_str)
-            prob = self.model.prob_max_usuarios_cola(value)
+            prob, limite = self.model.prob_max_usuarios_cola(value)
             
             # Construir detalles
             details = []
-            for n in range(self.model.k, self.model.k + value + 1):
+            for n in range(0, limite + 1):
                 pn = self.model.Pn(n)
                 details.append(f"P(n={n}) = {pn:.6f}")
             
-            result_text = f"Resultado: {prob:.6f}\n" + "\n".join(details)
+            result_text = f"P(<=n): P(<={value}) = {prob:.6f}\n" + "\n".join(details)
             self.lbl_qmax_result.config(text=result_text)
             
         except ValueError:
@@ -460,8 +468,16 @@ class QueueTheoryApp:
                 return
                 
             value = int(input_str)
-            prob = self.model.prob_min_usuarios_cola(value)
-            self.lbl_qmin_result.config(text=f"Resultado: {prob:.6f}")
+            prob, limite = self.model.prob_min_usuarios_cola(value)
+            
+            # Construir detalles
+            details = []
+            for n in range(0, limite + 1):
+                pn = self.model.Pn(n)
+                details.append(f"P(n={n}) = {pn:.6f}")
+            
+            result_text = f"P(>=n): P(>={value}) = 1 - ({1-prob:.6f}) = {prob:.6f}\n" + "\n".join(details)
+            self.lbl_qmin_result.config(text=result_text)
         except Exception as e:
             self.lbl_qmin_result.config(text=f"Error: {str(e)}")
     

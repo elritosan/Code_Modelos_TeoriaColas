@@ -22,21 +22,23 @@ class ClassBaseTeoriaColas(ABC):
         return sum(self.Pn(r) for r in rs)
 
     def prob_max_usuarios_sistema(self, r):
-        return sum(self.Pn(n) for n in range(r + 1))
+        limite = r
+        return sum(self.Pn(n) for n in range(0, limite + 1)), limite
 
     def prob_min_usuarios_sistema(self, r):
-        return 1 - sum(self.Pn(n) for n in range(r))
+        limite = r - 1
+        return 1 - sum(self.Pn(n) for n in range(0, limite + 1)), limite
     
     def prob_usuarios_cola(self, *rs):
         return sum(self.Pn(self.k + r) for r in rs)
 
     def prob_max_usuarios_cola(self, r):
         limite = self.k + r
-        return sum(self.Pn(n) for n in range(0, limite + 1))
+        return sum(self.Pn(n) for n in range(0, limite + 1)), limite
 
     def prob_min_usuarios_cola(self, r):
         limite = (self.k + r) - 1
-        return 1 - sum(self.Pn(n) for n in range(0, limite + 1))
+        return 1 - sum(self.Pn(n) for n in range(0, limite + 1)), limite
     
     # Número de Clientes
     @abstractmethod
