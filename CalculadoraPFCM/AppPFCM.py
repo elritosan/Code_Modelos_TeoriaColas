@@ -2,6 +2,10 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from pathlib import Path
 import sys
+import socket
+from threading import Thread
+import argparse
+import json
 
 # Configurar el path para importar los modelos
 models_path = Path(__file__).parent.parent / "Models"
@@ -10,13 +14,18 @@ sys.path.append(str(models_path))
 from Modelos_TeoriaColas import ClassPFCM
 
 class PFCMApp:
-    def __init__(self, root):
+    def __init__(self, root, port=5003):  # Puerto por defecto 5003 para PFCM
         self.root = root
-        self.root.title("Modelo PFCM (M/M/k/M) - Múltiples servidores, población finita")
+        self.port = port
+        self.root.title(f"Modelo PFCM (M/M/k/M) - Puerto {self.port}")
         
         self.ancho = 900
         self.alto = 600
         self.root.geometry(f"{self.ancho}x{self.alto}+0+0")
+        
+        # Configuración del servidor socket
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
         # Obtener dimensiones de pantalla
         screen_width = root.winfo_screenwidth()
@@ -29,6 +38,108 @@ class PFCMApp:
         
         self.model = None
         self.create_interface()
+        
+        # Iniciar servidor en segundo plano
+        self.running = True
+        self.server_thread = Thread(target=self.start_server)
+        self.server_thread.daemon = True
+        self.server_thread.start()
+
+    def start_server(self):
+        """Inicia el servidor socket para comunicación entre aplicaciones"""
+        try:
+            self.server_socket.bind(('localhost', self.port))
+            self.server_socket.listen(1)
+            
+            while self.running:
+                conn, addr = self.server_socket.accept()
+                Thread(target=self.handle_client, args=(conn, addr)).start()
+                
+        except Exception as e:
+            if self.running:
+                messagebox.showerror("Error", f"Error en servidor socket (Puerto {self.port}): {str(e)}")
+
+    def handle_client(self, conn, addr):
+        """Maneja las conexiones de clientes"""
+        try:
+            data = conn.recv(1024).decode()
+            
+            if data == "get_params":
+                response = self.get_current_params()
+                conn.send(response.encode())
+                
+            elif data.startswith("set_params:"):
+                params = json.loads(data[10:])
+                self.set_parameters(params)
+                conn.send("OK".encode())
+                
+            elif data == "get_results":
+                results = self.get_current_results()
+                conn.send(json.dumps(results).encode())
+                
+        except Exception as e:
+            conn.send(f"Error: {str(e)}".encode())
+        finally:
+            conn.close()
+
+    def get_current_params(self):
+        """Obtiene los parámetros actuales en formato JSON"""
+        params = {
+            'lam': self.entries['lam'].get() if 'lam' in self.entries else '',
+            'mu': self.entries['mu'].get() if 'mu' in self.entries else '',
+            'k': self.entries['k'].get() if 'k' in self.entries else '',
+            'M': self.entries['M'].get() if 'M' in self.entries else ''
+        }
+        return json.dumps(params)
+
+    def get_current_results(self):
+        """Obtiene los resultados actuales del modelo"""
+        if not self.model:
+            return {}
+            
+        return {
+            'L': self.model.L() if hasattr(self.model, 'L') else None,
+            'Lq': self.model.Lq() if hasattr(self.model, 'Lq') else None,
+            'W': self.model.W() if hasattr(self.model, 'W') else None,
+            'Wq': self.model.Wq() if hasattr(self.model, 'Wq') else None,
+            'costos': self.get_cost_data() if hasattr(self, 'output_values') else None
+        }
+
+    def get_cost_data(self):
+        """Obtiene los datos de costos actuales"""
+        return {
+            'cte': self.output_values['cte'].cget("text"),
+            'cts': self.output_values['cts'].cget("text"),
+            'ctse': self.output_values['ctse'].cget("text"),
+            'cs': self.output_values['cs'].cget("text"),
+            'total': self.output_values['total'].cget("text")
+        }
+
+    def set_parameters(self, params):
+        """Establece los parámetros desde otra instancia"""
+        def safe_set(entry, value):
+            if entry and value:
+                entry.delete(0, tk.END)
+                entry.insert(0, str(value))
+        
+        # Actualizar interfaz
+        safe_set(self.entries.get('lam'), params.get('lam'))
+        safe_set(self.entries.get('mu'), params.get('mu'))
+        safe_set(self.entries.get('k'), params.get('k'))
+        safe_set(self.entries.get('M'), params.get('M'))
+        
+        # Recalcular si todos los parámetros están presentes
+        if all(params.get(k) for k in ['lam', 'mu', 'k', 'M']):
+            self.calculate_model()
+
+    def __del__(self):
+        """Asegura que el socket se cierre correctamente"""
+        self.running = False
+        if hasattr(self, 'server_socket'):
+            try:
+                self.server_socket.close()
+            except:
+                pass
         
     def create_interface(self):
         """Crea la interfaz específica para el modelo PFCM"""
@@ -580,6 +691,11 @@ class PFCMApp:
             widget.destroy()
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Modelo PFCM (M/M/k/M) con soporte para múltiples instancias')
+    parser.add_argument('--port', type=int, default=5003,
+                      help='Puerto para comunicación entre aplicaciones (default: 5003)')
+    args = parser.parse_args()
+    
     root = tk.Tk()
-    app = PFCMApp(root)
+    app = PFCMApp(root, port=args.port)
     root.mainloop()

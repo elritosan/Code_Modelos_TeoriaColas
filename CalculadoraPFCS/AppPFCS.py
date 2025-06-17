@@ -2,6 +2,10 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from pathlib import Path
 import sys
+import socket
+from threading import Thread
+import argparse
+import json
 
 # Configurar el path para importar los modelos
 models_path = Path(__file__).parent.parent / "Models"
@@ -10,13 +14,18 @@ sys.path.append(str(models_path))
 from Modelos_TeoriaColas import ClassPFCS
 
 class PFCSApp:
-    def __init__(self, root):
+    def __init__(self, root, port=5002):  # Puerto por defecto 5002 para PFCS
         self.root = root
-        self.root.title("Modelo PFCS (M/M/1/M) - Un servidor, población finita")
+        self.port = port
+        self.root.title(f"Modelo PFCS (M/M/1/M) - Puerto {self.port}")
         
         self.ancho = 900
         self.alto = 600
         self.root.geometry(f"{self.ancho}x{self.alto}+0+0")
+        
+        # Configuración del servidor socket
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
         # Obtener dimensiones de pantalla
         screen_width = root.winfo_screenwidth()
@@ -29,6 +38,72 @@ class PFCSApp:
         
         self.model = None
         self.create_interface()
+        
+        # Iniciar servidor en segundo plano
+        self.running = True
+        self.server_thread = Thread(target=self.start_server)
+        self.server_thread.daemon = True
+        self.server_thread.start()
+
+    def start_server(self):
+        """Inicia el servidor socket para comunicación entre aplicaciones"""
+        try:
+            self.server_socket.bind(('localhost', self.port))
+            self.server_socket.listen(1)
+            
+            while self.running:
+                conn, addr = self.server_socket.accept()
+                Thread(target=self.handle_client, args=(conn, addr)).start()
+                
+        except Exception as e:
+            if self.running:
+                messagebox.showerror("Error", f"Error en servidor socket: {str(e)}")
+
+    def handle_client(self, conn, addr):
+        """Maneja las conexiones de clientes"""
+        try:
+            data = conn.recv(1024).decode()
+            if data == "get_params":
+                response = self.get_current_params()
+                conn.send(response.encode())
+            elif data.startswith("set_params:"):
+                params = json.loads(data[10:])
+                self.set_parameters(params)
+                conn.send("OK".encode())
+        except Exception as e:
+            conn.send(f"Error: {str(e)}".encode())
+        finally:
+            conn.close()
+
+    def get_current_params(self):
+        """Obtiene los parámetros actuales en formato JSON"""
+        params = {
+            'lam': self.entries['lam'].get() if 'lam' in self.entries else '',
+            'mu': self.entries['mu'].get() if 'mu' in self.entries else '',
+            'M': self.entries['M'].get() if 'M' in self.entries else ''
+        }
+        return json.dumps(params)
+
+    def set_parameters(self, params):
+        """Establece los parámetros desde otra instancia"""
+        def safe_set(entry, value):
+            if entry and value:
+                entry.delete(0, tk.END)
+                entry.insert(0, str(value))
+        
+        safe_set(self.entries.get('lam'), params.get('lam'))
+        safe_set(self.entries.get('mu'), params.get('mu'))
+        safe_set(self.entries.get('M'), params.get('M'))
+        
+        # Recalcular si todos los parámetros están presentes
+        if all(params.get(k) for k in ['lam', 'mu', 'M']):
+            self.calculate_model()
+
+    def __del__(self):
+        """Asegura que el socket se cierre correctamente"""
+        self.running = False
+        if hasattr(self, 'server_socket'):
+            self.server_socket.close()
         
     def create_interface(self):
         """Crea la interfaz específica para el modelo PFCS"""
@@ -573,6 +648,11 @@ class PFCSApp:
             widget.destroy()
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', type=int, default=5002, 
+                       help='Puerto para la comunicación entre aplicaciones')
+    args = parser.parse_args()
+    
     root = tk.Tk()
-    app = PFCSApp(root)
+    app = PFCSApp(root, port=args.port)
     root.mainloop()

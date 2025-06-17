@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from pathlib import Path
 import sys
+import socket
+from threading import Thread
+import argparse
 
 # Configurar el path para importar los modelos
 models_path = Path(__file__).parent.parent / "Models"
@@ -10,13 +13,18 @@ sys.path.append(str(models_path))
 from Modelos_TeoriaColas import ClassPICM
 
 class PICMApp:
-    def __init__(self, root):
+    def __init__(self, root, port=5001):  # Puerto por defecto diferente
         self.root = root
-        self.root.title("Modelo PICM (M/M/k) - Múltiples servidores, población infinita")
+        self.port = port
+        self.root.title(f"Modelo PICM (M/M/k) - Puerto {self.port}")
         
         self.ancho = 900
         self.alto = 600
         self.root.geometry(f"{self.ancho}x{self.alto}+0+0")
+        
+        # Configurar el servidor socket
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
         # Obtener dimensiones de pantalla
         screen_width = root.winfo_screenwidth()
@@ -29,6 +37,51 @@ class PICMApp:
         
         self.model = None
         self.create_interface()
+        
+        # Iniciar servidor en segundo plano
+        self.running = True
+        self.server_thread = Thread(target=self.start_server)
+        self.server_thread.daemon = True
+        self.server_thread.start()
+
+    def start_server(self):
+        """Inicia el servidor socket para comunicación entre aplicaciones"""
+        try:
+            self.server_socket.bind(('localhost', self.port))
+            self.server_socket.listen(1)
+            
+            while self.running:
+                conn, addr = self.server_socket.accept()
+                Thread(target=self.handle_client, args=(conn, addr)).start()
+                
+        except Exception as e:
+            if self.running:  # Solo mostrar error si no fue un cierre intencional
+                messagebox.showerror("Error", f"Error en servidor socket: {str(e)}")
+
+    def handle_client(self, conn, addr):
+        """Maneja las conexiones de clientes"""
+        try:
+            data = conn.recv(1024).decode()
+            if data == "get_params":
+                response = self.get_current_params()
+                conn.send(response.encode())
+        finally:
+            conn.close()
+
+    def get_current_params(self):
+        """Obtiene los parámetros actuales para compartir con otras instancias"""
+        params = {
+            'lam': self.entries['lam'].get() if 'lam' in self.entries else '',
+            'mu': self.entries['mu'].get() if 'mu' in self.entries else '',
+            'k': self.entries['k'].get() if 'k' in self.entries else ''
+        }
+        return str(params)
+
+    def __del__(self):
+        """Asegura que el socket se cierre correctamente"""
+        self.running = False
+        if hasattr(self, 'server_socket'):
+            self.server_socket.close()
         
     def create_interface(self):
         """Crea la interfaz específica para el modelo PICM"""
@@ -573,6 +626,11 @@ class PICMApp:
             widget.destroy()
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', type=int, default=5001, 
+                       help='Puerto para la comunicación entre aplicaciones')
+    args = parser.parse_args()
+    
     root = tk.Tk()
-    app = PICMApp(root)
+    app = PICMApp(root, port=args.port)
     root.mainloop()
