@@ -205,13 +205,13 @@ class ClassFinitas(ClassBaseTeoriaColas):
         return self.Wq() / self.PE_prob_sistema_ocupado()
     
     def CTE_costo_diario_espera_cola(self, C_TE):
-        return self.L() * self.hrlab * C_TE
+        return self.lam * self.hrlab * self.Wq() * C_TE
 
     def CTS_costo_diario_tiempo_sistema(self, C_TS):
-        return self.L() * self.hrlab * C_TS
+        return self.lam * self.hrlab * self.W() * C_TS
 
     def CTSE_costo_diario_servicio(self, C_TSE):
-        return self.L() * self.hrlab * C_TSE
+        return self.lam * self.hrlab * (1 / self.mu) * C_TSE
 
     def CS_costo_diario_servidor(self, C_S):
         return self.k * C_S
