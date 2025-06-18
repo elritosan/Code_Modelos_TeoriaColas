@@ -1,6 +1,13 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from Models.Modelos_TeoriaColas import ClassPICS, ClassPICM, ClassPFCS, ClassPFCM
+from pathlib import Path
+import sys
+
+# Configurar el path para importar los modelos
+models_path = Path(__file__).parent.parent / "Models"
+sys.path.append(str(models_path))
+
+from Modelos_TeoriaColas import ClassPICS, ClassPICM, ClassPFCS, ClassPFCM
 
 class QueueTheoryApp:
     def __init__(self, root):
