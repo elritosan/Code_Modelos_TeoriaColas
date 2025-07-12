@@ -16,3 +16,5 @@
     npm install bootstrap bootstrap-icons
     npm install react-bootstrap
     npm install react-icons
+    npm install react-router-bootstrap
+    npm install @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/react-fontawesome

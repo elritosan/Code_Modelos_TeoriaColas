@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelos de Teoría de Colas</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .main-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 20px;
+            min-height: 80vh;
+        }
+        .model-btn {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        .back-btn {
+            margin-bottom: 20px;
+        }
+        .result-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .tab-content {
+            padding: 15px;
+            border-left: 1px solid #dee2e6;
+            border-right: 1px solid #dee2e6;
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 0 0 5px 5px;
+        }
+        .metric-card {
+            border-left: 4px solid #0d6efd;
+            margin-bottom: 15px;
+        }
+        .metric-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .probability-section {
+            margin-bottom: 20px;
+        }
+        .scrollable-probability {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .input-group-sm {
+            margin-bottom: 5px;
+        }
+        .result-value {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .total-cost {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #198754;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container main-container" id="app-container">
+        <!-- Pantalla principal de selección de modelo -->
+        <div id="main-screen">
+            <h2 class="text-center mb-4">Seleccione el Modelo de Cola</h2>
+            
+            <div class="d-grid gap-2 col-md-8 mx-auto">
+                <button class="btn btn-primary model-btn" onclick="showModelInterface('PICS')">
+                    PICS (M/M/1) - Un servidor, población infinita
+                </button>
+                <button class="btn btn-primary model-btn" onclick="showModelInterface('PICM')">
+                    PICM (M/M/k) - Múltiples servidores, población infinita
+                </button>
+                <button class="btn btn-primary model-btn" onclick="showModelInterface('PFCS')">
+                    PFCS (M/M/1/M) - Un servidor, población finita
+                </button>
+                <button class="btn btn-primary model-btn" onclick="showModelInterface('PFCM')">
+                    PFCM (M/M/k/M) - Múltiples servidores, población finita
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla de modelo específico (se muestra dinámicamente) -->
+        <div id="model-screen" style="display: none;">
+            <button class="btn btn-secondary back-btn" onclick="showMainScreen()">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            
+            <h3 id="model-title" class="text-center mb-4"></h3>
+            
+            <!-- Formulario de parámetros -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Parámetros del Modelo</h5>
+                </div>
+                <div class="card-body">
+                    <form id="model-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="lam" class="form-label">Tasa de llegada (λ)</label>
+                                <input type="number" step="0.01" class="form-control" id="lam" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="mu" class="form-label">Tasa de servicio (μ)</label>
+                                <input type="number" step="0.01" class="form-control" id="mu" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Campos adicionales según el modelo -->
+                        <div class="row" id="k-field" style="display: none;">
+                            <div class="col-md-6 mb-3">
+                                <label for="k" class="form-label">Número de servidores (k)</label>
+                                <input type="number" min="1" class="form-control" id="k">
+                            </div>
+                        </div>
+                        
+                        <div class="row" id="m-field" style="display: none;">
+                            <div class="col-md-6 mb-3">
+                                <label for="M" class="form-label">Tamaño población (M)</label>
+                                <input type="number" min="1" class="form-control" id="M">
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="button" class="btn btn-primary" onclick="calculateModel()">
+                                Calcular
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Resultados -->
+            <div id="results-section" style="display: none;">
+                <ul class="nav nav-tabs" id="resultsTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="prob-tab" data-bs-toggle="tab" data-bs-target="#prob-tab-pane" type="button" role="tab">
+                            Probabilidades
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics-tab-pane" type="button" role="tab">
+                            Métricas
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="cost-tab" data-bs-toggle="tab" data-bs-target="#cost-tab-pane" type="button" role="tab">
+                            Costos
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="resultsTabsContent">
+                    <!-- Pestaña de Probabilidades -->
+                    <div class="tab-pane fade show active" id="prob-tab-pane" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="list-group" id="prob-menu">
+                                    <button class="list-group-item list-group-item-action active" onclick="showProbabilitySection('basics')">
+                                        Probabilidades Básicas
+                                    </button>
+                                    <button class="list-group-item list-group-item-action" onclick="showProbabilitySection('system-calc')">
+                                        Cálculos en el Sistema
+                                    </button>
+                                    <button class="list-group-item list-group-item-action" onclick="showProbabilitySection('queue-calc')">
+                                        Cálculos en Cola
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-8">
+                                <div id="probability-content">
+                                    <!-- Contenido dinámico de probabilidades -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pestaña de Métricas -->
+                    <div class="tab-pane fade" id="metrics-tab-pane" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card metric-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title metric-title">Número Esperado de Clientes</h5>
+                                        <div class="row">
+                                            <div class="col-8">En el sistema (L):</div>
+                                            <div class="col-4 result-value" id="metric-L">-</div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-8">En la cola (Lq):</div>
+                                            <div class="col-4 result-value" id="metric-Lq">-</div>
+                                        </div>
+                                        <div class="row" id="metric-Ln-row" style="display: none;">
+                                            <div class="col-8">En cola no vacía (Ln):</div>
+                                            <div class="col-4 result-value" id="metric-Ln">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card metric-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title metric-title">Tiempos Esperados de Espera</h5>
+                                        <div class="row">
+                                            <div class="col-8">En el sistema (W):</div>
+                                            <div class="col-4 result-value" id="metric-W">-</div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-8">En la cola (Wq):</div>
+                                            <div class="col-4 result-value" id="metric-Wq">-</div>
+                                        </div>
+                                        <div class="row" id="metric-Wn-row" style="display: none;">
+                                            <div class="col-8">En cola no vacía (Wn):</div>
+                                            <div class="col-4 result-value" id="metric-Wn">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pestaña de Costos -->
+                    <div class="tab-pane fade" id="cost-tab-pane" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Parámetros de Costo</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="hrlab" class="form-label">Horas laborables al día (hrlab)</label>
+                                            <input type="number" step="0.1" class="form-control" id="hrlab" value="8">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="cte" class="form-label">Costo espera en cola (CTE)</label>
+                                            <input type="number" step="0.01" class="form-control" id="cte">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="cts" class="form-label">Costo tiempo sistema (CTS)</label>
+                                            <input type="number" step="0.01" class="form-control" id="cts">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="ctse" class="form-label">Costo tiempo servicio (CTSE)</label>
+                                            <input type="number" step="0.01" class="form-control" id="ctse">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="cs" class="form-label">Costo servidor (CS)</label>
+                                            <input type="number" step="0.01" class="form-control" id="cs">
+                                        </div>
+                                        <button class="btn btn-primary" onclick="calculateCosts()">Calcular Costos</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Resultados de Costos</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row mb-2">
+                                            <div class="col-8">Horas laborables al día:</div>
+                                            <div class="col-4 result-value" id="cost-hrlab">-</div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-8">Costo diario espera en cola (CTE):</div>
+                                            <div class="col-4 result-value" id="cost-cte">-</div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-8">Costo diario tiempo en sistema (CTS):</div>
+                                            <div class="col-4 result-value" id="cost-cts">-</div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-8">Costo diario tiempo en servicio (CTSE):</div>
+                                            <div class="col-4 result-value" id="cost-ctse">-</div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-8">Costo diario servidor (CS):</div>
+                                            <div class="col-4 result-value" id="cost-cs">-</div>
+                                        </div>
+                                        <div class="total-cost">
+                                            <div class="row">
+                                                <div class="col-8">COSTO TOTAL DIARIO:</div>
+                                                <div class="col-4 result-value" id="cost-total">-</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Variables globales
+        let currentModel = null;
+        let modelResults = null;
+        
+        // Mostrar pantalla principal
+        function showMainScreen() {
+            document.getElementById('main-screen').style.display = 'block';
+            document.getElementById('model-screen').style.display = 'none';
+            document.getElementById('results-section').style.display = 'none';
+            resetForm();
+        }
+        
+        // Mostrar interfaz de modelo específico
+        function showModelInterface(modelType) {
+            document.getElementById('main-screen').style.display = 'none';
+            document.getElementById('model-screen').style.display = 'block';
+            document.getElementById('results-section').style.display = 'none';
+            
+            // Configurar título según el modelo
+            const modelTitles = {
+                'PICS': 'PICS (M/M/1) - Un servidor, población infinita',
+                'PICM': 'PICM (M/M/k) - Múltiples servidores, población infinita',
+                'PFCS': 'PFCS (M/M/1/M) - Un servidor, población finita',
+                'PFCM': 'PFCM (M/M/k/M) - Múltiples servidores, población finita'
+            };
+            document.getElementById('model-title').textContent = modelTitles[modelType];
+            
+            // Mostrar/ocultar campos adicionales según el modelo
+            document.getElementById('k-field').style.display = 
+                (modelType === 'PICM' || modelType === 'PFCM') ? 'block' : 'none';
+            document.getElementById('m-field').style.display = 
+                (modelType === 'PFCS' || modelType === 'PFCM') ? 'block' : 'none';
+            
+            // Resetear formulario
+            resetForm();
+            
+            // Guardar modelo actual
+            currentModel = modelType;
+        }
+        
+        // Resetear formulario
+        function resetForm() {
+            document.getElementById('model-form').reset();
+            document.getElementById('results-section').style.display = 'none';
+        }
+        
+        // Calcular modelo (simulación)
+        function calculateModel() {
+            // Validar entrada
+            const lam = parseFloat(document.getElementById('lam').value);
+            const mu = parseFloat(document.getElementById('mu').value);
+            
+            if (isNaN(lam) || isNaN(mu)) {
+                alert('Por favor ingrese valores válidos para λ y μ');
+                return;
+            }
+            
+            // Simular cálculo del modelo (en una implementación real, esto llamaría al backend)
+            modelResults = {
+                basics: getBasicProbabilities(currentModel, lam, mu),
+                metrics: getMetrics(currentModel, lam, mu),
+                probabilities: getProbabilityCalculations(currentModel, lam, mu)
+            };
+            
+            // Mostrar resultados
+            document.getElementById('results-section').style.display = 'block';
+            
+            // Actualizar pestañas
+            showProbabilitySection('basics');
+            updateMetricsTab();
+            
+            // Activar primera pestaña
+            new bootstrap.Tab(document.getElementById('prob-tab')).show();
+        }
+        
+        // Mostrar sección de probabilidad seleccionada
+        function showProbabilitySection(section) {
+            const contentDiv = document.getElementById('probability-content');
+            
+            // Resaltar botón activo en el menú
+            const menuItems = document.querySelectorAll('#prob-menu button');
+            menuItems.forEach(item => item.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Generar contenido según la sección
+            let html = '';
+            
+            if (section === 'basics') {
+                html = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Probabilidades Básicas del Sistema</h5>
+                        </div>
+                        <div class="card-body">
+                            ${generateBasicProbabilitiesHTML()}
+                        </div>
+                    </div>
+                `;
+            } else if (section === 'system-calc') {
+                html = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Cálculos de Probabilidad en el Sistema</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Probabilidad de exactamente estos usuarios (separados por comas):</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" id="pn-input">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="calculatePnSystem()">Calcular</button>
+                                </div>
+                                <div class="mt-2" id="pn-result"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Probabilidad de máximo este número de usuarios:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control" id="pmax-input">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="calculatePmaxSystem()">Calcular</button>
+                                </div>
+                                <div class="mt-2" id="pmax-result"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Probabilidad de al menos este número de usuarios:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control" id="pmin-input">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="calculatePminSystem()">Calcular</button>
+                                </div>
+                                <div class="mt-2" id="pmin-result"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (section === 'queue-calc') {
+                html = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Cálculos de Probabilidad en Cola</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Probabilidad de exactamente estos usuarios en cola (separados por comas):</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" id="qn-input">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="calculateQnQueue()">Calcular</button>
+                                </div>
+                                <div class="mt-2" id="qn-result"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Probabilidad de máximo este número de usuarios en cola:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control" id="qmax-input">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="calculateQmaxQueue()">Calcular</button>
+                                </div>
+                                <div class="mt-2" id="qmax-result"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Probabilidad de al menos este número de usuarios en cola:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control" id="qmin-input">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="calculateQminQueue()">Calcular</button>
+                                </div>
+                                <div class="mt-2" id="qmin-result"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            contentDiv.innerHTML = html;
+        }
+        
+        // Generar HTML para probabilidades básicas
+        function generateBasicProbabilitiesHTML() {
+            if (!modelResults || !modelResults.basics) return '<p>No hay datos disponibles</p>';
+            
+            let html = '';
+            for (const [label, value] of Object.entries(modelResults.basics)) {
+                html += `
+                    <div class="row mb-2">
+                        <div class="col-8">${label}:</div>
+                        <div class="col-4 result-value">${value.toFixed(6)}</div>
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+        
+        // Actualizar pestaña de métricas
+        function updateMetricsTab() {
+            if (!modelResults || !modelResults.metrics) return;
+            
+            const metrics = modelResults.metrics;
+            
+            // Actualizar métricas básicas
+            document.getElementById('metric-L').textContent = metrics.L.toFixed(6);
+            document.getElementById('metric-Lq').textContent = metrics.Lq.toFixed(6);
+            document.getElementById('metric-W').textContent = metrics.W.toFixed(6);
+            document.getElementById('metric-Wq').textContent = metrics.Wq.toFixed(6);
+            
+            // Mostrar/ocultar métricas adicionales según el modelo
+            if (metrics.Ln !== undefined) {
+                document.getElementById('metric-Ln-row').style.display = 'flex';
+                document.getElementById('metric-Ln').textContent = metrics.Ln.toFixed(6);
+            } else {
+                document.getElementById('metric-Ln-row').style.display = 'none';
+            }
+            
+            if (metrics.Wn !== undefined) {
+                document.getElementById('metric-Wn-row').style.display = 'flex';
+                document.getElementById('metric-Wn').textContent = metrics.Wn.toFixed(6);
+            } else {
+                document.getElementById('metric-Wn-row').style.display = 'none';
+            }
+        }
+        
+        // Calcular costos
+        function calculateCosts() {
+            const hrlab = parseFloat(document.getElementById('hrlab').value) || 8;
+            const cte = parseFloat(document.getElementById('cte').value) || 0;
+            const cts = parseFloat(document.getElementById('cts').value) || 0;
+            const ctse = parseFloat(document.getElementById('ctse').value) || 0;
+            const cs = parseFloat(document.getElementById('cs').value) || 0;
+            
+            // Simular cálculo de costos (en una implementación real, esto llamaría al backend)
+            const costResults = calculateCostModel(currentModel, hrlab, cte, cts, ctse, cs);
+            
+            // Actualizar UI
+            document.getElementById('cost-hrlab').textContent = hrlab + ' horas';
+            document.getElementById('cost-cte').textContent = '$' + costResults.CTE.toFixed(2);
+            document.getElementById('cost-cts').textContent = '$' + costResults.CTS.toFixed(2);
+            document.getElementById('cost-ctse').textContent = '$' + costResults.CTSE.toFixed(2);
+            document.getElementById('cost-cs').textContent = '$' + costResults.CS.toFixed(2);
+            document.getElementById('cost-total').textContent = '$' + costResults.total.toFixed(2);
+        }
+        
+        // Funciones de cálculo (simuladas - en una implementación real se conectarían al backend)
+        
+        function getBasicProbabilities(model, lam, mu) {
+            // Simulación de probabilidades básicas según el modelo
+            if (model === 'PICS') {
+                const rho = lam / mu;
+                return {
+                    'Probabilidad sistema ocupado (ρ)': rho,
+                    'Probabilidad sistema desocupado (P0)': 1 - rho
+                };
+            } else if (model === 'PICM') {
+                return {
+                    'Probabilidad sistema vacío (P0)': 0.35,
+                    'Probabilidad sistema ocupado (Pk)': 0.45,
+                    'Probabilidad sistema desocupado (PNE)': 0.55
+                };
+            } else if (model === 'PFCS') {
+                return {
+                    'Probabilidad sistema ocupado (PE)': 0.4,
+                    'Probabilidad sistema desocupado (P0)': 0.6
+                };
+            } else if (model === 'PFCM') {
+                return {
+                    'Probabilidad sistema vacío (P0)': 0.3,
+                    'Probabilidad sistema ocupado (PE)': 0.5,
+                    'Probabilidad sistema desocupado (PNE)': 0.5
+                };
+            }
+            return {};
+        }
+        
+        function getMetrics(model, lam, mu) {
+            // Simulación de métricas según el modelo
+            const baseMetrics = {
+                L: lam * 0.8,
+                Lq: lam * 0.5,
+                W: 1 / (mu - lam * 0.9),
+                Wq: 1 / (mu - lam * 0.8)
+            };
+            
+            if (model === 'PICM' || model === 'PFCM') {
+                baseMetrics.Ln = lam * 0.6;
+                baseMetrics.Wn = 1 / (mu - lam * 0.7);
+            }
+            
+            return baseMetrics;
+        }
+        
+        function getProbabilityCalculations(model, lam, mu) {
+            // Simulación de cálculos de probabilidad
+            return {
+                system: {
+                    pn: 0.25,
+                    pmax: 0.75,
+                    pmin: 0.35
+                },
+                queue: {
+                    qn: 0.15,
+                    qmax: 0.65,
+                    qmin: 0.45
+                }
+            };
+        }
+        
+        function calculateCostModel(model, hrlab, cte, cts, ctse, cs) {
+            // Simulación de cálculo de costos
+            return {
+                CTE: hrlab * cte * 0.8,
+                CTS: hrlab * cts * 0.7,
+                CTSE: hrlab * ctse * 0.6,
+                CS: cs * (model === 'PICM' || model === 'PFCM' ? 3 : 1),
+                total: hrlab * (cte * 0.8 + cts * 0.7 + ctse * 0.6) + cs * (model === 'PICM' || model === 'PFCM' ? 3 : 1)
+            };
+        }
+        
+        // Funciones para cálculos de probabilidad en el sistema y cola
+        
+        function calculatePnSystem() {
+            const input = document.getElementById('pn-input').value.trim();
+            if (!input) {
+                document.getElementById('pn-result').textContent = 'Ingrese valores';
+                return;
+            }
+            
+            try {
+                const values = [...new Set(input.split(',').map(x => parseInt(x.trim())))].sort((a, b) => a - b);
+                if (values.length === 0) {
+                    document.getElementById('pn-result').textContent = 'Ingrese valores válidos';
+                    return;
+                }
+                
+                // Simular cálculo (en una implementación real, esto llamaría al backend)
+                const prob = values.reduce((sum, n) => sum + Math.pow(0.5, n + 1), 0);
+                
+                let details = values.map(n => `P(n=${n}) = ${Math.pow(0.5, n + 1).toFixed(6)}`).join('\n');
+                document.getElementById('pn-result').innerHTML = `
+                    <strong>Resultado:</strong> P(${values.join(', ')}) = ${prob.toFixed(6)}<br>
+                    <pre>${details}</pre>
+                `;
+            } catch (e) {
+                document.getElementById('pn-result').textContent = 'Error: Ingrese números válidos separados por comas';
+            }
+        }
+        
+        function calculatePmaxSystem() {
+            const input = document.getElementById('pmax-input').value.trim();
+            if (!input) {
+                document.getElementById('pmax-result').textContent = 'Ingrese valor';
+                return;
+            }
+            
+            try {
+                const value = parseInt(input);
+                // Simular cálculo (en una implementación real, esto llamaría al backend)
+                const prob = 1 - Math.pow(0.5, value + 1);
+                const limite = value;
+                
+                let details = '';
+                for (let n = 0; n <= limite; n++) {
+                    details += `P(n=${n}) = ${Math.pow(0.5, n + 1).toFixed(6)}\n`;
+                }
+                
+                document.getElementById('pmax-result').innerHTML = `
+                    <strong>Resultado:</strong> P(<=${value}) = ${prob.toFixed(6)}<br>
+                    <pre>${details}</pre>
+                `;
+            } catch (e) {
+                document.getElementById('pmax-result').textContent = 'Error: Ingrese un número válido';
+            }
+        }
+        
+        function calculatePminSystem() {
+            const input = document.getElementById('pmin-input').value.trim();
+            if (!input) {
+                document.getElementById('pmin-result').textContent = 'Ingrese valor';
+                return;
+            }
+            
+            try {
+                const value = parseInt(input);
+                // Simular cálculo (en una implementación real, esto llamaría al backend)
+                const prob = Math.pow(0.5, value);
+                const limite = value - 1;
+                
+                let details = '';
+                for (let n = 0; n <= limite; n++) {
+                    details += `P(n=${n}) = ${Math.pow(0.5, n + 1).toFixed(6)}\n`;
+                }
+                
+                document.getElementById('pmin-result').innerHTML = `
+                    <strong>Resultado:</strong> P(>=${value}) = 1 - (${(1-prob).toFixed(6)}) = ${prob.toFixed(6)}<br>
+                    <pre>${details}</pre>
+                `;
+            } catch (e) {
+                document.getElementById('pmin-result').textContent = 'Error: Ingrese un número válido';
+            }
+        }
+        
+        function calculateQnQueue() {
+            const input = document.getElementById('qn-input').value.trim();
+            if (!input) {
+                document.getElementById('qn-result').textContent = 'Ingrese valores';
+                return;
+            }
+            
+            try {
+                const values = [...new Set(input.split(',').map(x => parseInt(x.trim())))].sort((a, b) => a - b);
+                if (values.length === 0) {
+                    document.getElementById('qn-result').textContent = 'Ingrese valores válidos';
+                    return;
+                }
+                
+                // Simular cálculo (en una implementación real, esto llamaría al backend)
+                const prob = values.reduce((sum, n) => sum + Math.pow(0.4, n + 1), 0);
+                
+                let details = values.map(n => `P(n=${n}) = ${Math.pow(0.4, n + 1).toFixed(6)}`).join('\n');
+                document.getElementById('qn-result').innerHTML = `
+                    <strong>Resultado:</strong> ${prob.toFixed(6)}<br>
+                    <pre>${details}</pre>
+                `;
+            } catch (e) {
+                document.getElementById('qn-result').textContent = 'Error: Ingrese números válidos separados por comas';
+            }
+        }
+        
+        function calculateQmaxQueue() {
+            const input = document.getElementById('qmax-input').value.trim();
+            if (!input) {
+                document.getElementById('qmax-result').textContent = 'Ingrese valor';
+                return;
+            }
+            
+            try {
+                const value = parseInt(input);
+                // Simular cálculo (en una implementación real, esto llamaría al backend)
+                const prob = 1 - Math.pow(0.4, value + 1);
+                const limite = value;
+                
+                let details = '';
+                for (let n = 0; n <= limite; n++) {
+                    details += `P(n=${n}) = ${Math.pow(0.4, n + 1).toFixed(6)}\n`;
+                }
+                
+                document.getElementById('qmax-result').innerHTML = `
+                    <strong>Resultado:</strong> P(<=${value}) = ${prob.toFixed(6)}<br>
+                    <pre>${details}</pre>
+                `;
+            } catch (e) {
+                document.getElementById('qmax-result').textContent = 'Error: Ingrese un número válido';
+            }
+        }
+        
+        function calculateQminQueue() {
+            const input = document.getElementById('qmin-input').value.trim();
+            if (!input) {
+                document.getElementById('qmin-result').textContent = 'Ingrese valor';
+                return;
+            }
+            
+            try {
+                const value = parseInt(input);
+                // Simular cálculo (en una implementación real, esto llamaría al backend)
+                const prob = Math.pow(0.4, value);
+                const limite = value - 1;
+                
+                let details = '';
+                for (let n = 0; n <= limite; n++) {
+                    details += `P(n=${n}) = ${Math.pow(0.4, n + 1).toFixed(6)}\n`;
+                }
+                
+                document.getElementById('qmin-result').innerHTML = `
+                    <strong>Resultado:</strong> P(>=${value}) = 1 - (${(1-prob).toFixed(6)}) = ${prob.toFixed(6)}<br>
+                    <pre>${details}</pre>
+                `;
+            } catch (e) {
+                document.getElementById('qmin-result').textContent = 'Error: Ingrese un número válido';
+            }
+        }
+    </script>
+</body>
+</html>

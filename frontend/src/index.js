@@ -1,6 +1,10 @@
+// frontend\src\index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import 'bootstrap/dist/css/bootstrap.min.css';  // Importa CSS de Bootstrap
+import 'bootstrap/dist/js/bootstrap.bundle.min'; // Importa JS de Bootstrap
+import 'bootstrap-icons/font/bootstrap-icons.css'; // Importa íconos
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
