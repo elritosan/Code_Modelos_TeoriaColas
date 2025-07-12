@@ -1,0 +1,55 @@
+Manejar servidores del Backend y Frontend de forma simultánea (En la raíz del proyecto)
+
+📦 1. Estructura de carpetas esperada
+
+ProyectoBar-Cafeteria/
+│
+├── backend/     <-- servidor Express
+├── frontend/    <-- aplicación React
+├── package.json
+
+⚙️ 2. En la raíz (ProyectoBar-Cafeteria/)
+
+Inicializar npm
+Si aún no tienes un package.json en la raíz:
+    
+    npm init -y
+
+📥 3. Instalar las herramientas necesarias
+Desde la raíz:
+
+    npm install --save concurrently
+    npm install --save nodemon
+
+concurrently: nos permitirá correr dos comandos a la vez (backend y frontend).
+nodemon: para que el backend se reinicie automáticamente cuando guardes cambios.
+
+📝 4. Configurar el package.json
+Edita tu package.json del Backend y en la sección "scripts" agrega:
+
+    "scripts": {
+        "dev": "nodemon index.js",
+        "start": "node index.js"
+    }
+    
+Nota: Como pre-requisito ya debe estar creado el index.js en el Backend
+
+Edita tu package.json en la raíz y en la sección "scripts" agrega:
+
+    "scripts": {
+        "start": "concurrently \"npm run backend\" \"npm run frontend\"",
+        "backend": "npm run dev --prefix backend",
+        "frontend": "npm start --prefix frontend"
+    }
+
+¿Qué hacen estos scripts?
+
+npm run server → Se mueve a backend/ y corre nodemon index.js (o el archivo principal de tu backend, cambia el nombre si no es index.js).
+npm run client → Se mueve a frontend/ y corre el servidor React.
+npm start → Corre ambos al mismo tiempo usando concurrently.
+
+🚀 5. ¿Cómo correr ambos servidores simultáneamente?
+
+Desde la raíz del proyecto:
+
+    npm start

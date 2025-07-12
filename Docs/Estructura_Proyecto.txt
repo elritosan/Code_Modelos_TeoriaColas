@@ -1,0 +1,37 @@
+📂 Code_Modelos_TeoriaColas
+├── 📁 backend
+│   ├── 📁 controllers
+│   │   ├── 📁 Basicos
+│   │   │   └── 📄 Class_{nombre}_Controller.js
+│   │   └── 📁 Complejos
+│   ├── 📁 models
+│   │   ├── 📁 Basicos
+│   │   │   └── 📄 Class_{nombre}.js
+│   ├── 📁 routes
+│   │   ├── 📁 Basicos
+│   │   │   └── 📄 {nombre}_Routes.js
+│   │   ├── 📁 Complejos
+│   │   └── 📄 apiRoutes.js
+│   ├── 📄 package-lock.json
+│   ├── 📄 package.json
+│   └── 📄 index.js
+├── 📁 frontend
+│   ├── 📁 public
+│   │   └── 📄 index.html
+│   ├── 📁 src
+│   │   ├── 📁 services
+│   │   │   ├── 📁 Basicos
+│   │   │   │   └── 📄 {nombre}_Service.js
+│   │   │   ├── 📁 Complejos
+│   │   ├── 📁 styles
+│   │   ├── 📁 utils
+│   │   ├── 📁 views
+│   │   ├── 📄 App.js
+│   │   ├── 📄 index.js
+│   │   ├── 📄 index.css
+│   │   └── 📄 reportWebVitals.js
+│   ├── 📄 package-lock.json
+│   ├── 📄 package.json
+│── 📄 .gitignore
+│── 📄 package-lock.json
+└── 📄 package.json
